@@ -22,10 +22,43 @@ SELECT location, date, total_cases, new_cases, total_deaths, population
 FROM [PortfolioDB].[dbo].[owid-covid-data]
 ORDER BY new_cases DESC
 
----- Order by date ----
-SELECT location, date, total_cases, new_cases, total_deaths, population, (total_deaths / total_cases) as DeathRates 
+---- Look at the death rates, reverse ordered by date ----
+SELECT location, date, total_cases, new_cases, total_deaths, population, (total_deaths / total_cases)*100 as DeathRates 
 FROM [PortfolioDB].[dbo].[owid-covid-data]
 WHERE location like '%Taiwan%'
 ORDER BY 1,2 DESC
 
-DROP TABLE PortfolioDB.dbo.CovidDeaths, PortfolioDB.dbo.CovidVaccinations
+---- Look at total cases vs population (infection rate)  ----
+SELECT location, date, total_cases, new_cases, total_deaths, population, (total_cases / population)*100 as InfectionhRates 
+FROM [PortfolioDB].[dbo].[owid-covid-data]
+WHERE location like '%Taiwan%'
+ORDER BY 1,2 DESC
+
+---- Look at infection rate vs population among countries  ----
+SELECT location, MAX(total_cases) as HighestInfectionCount, population, MAX((total_cases / population)*100) as InfectionRates
+FROM [PortfolioDB].[dbo].[owid-covid-data]
+-- WHERE location like '%Taiwan%' --
+GROUP BY location, population
+ORDER BY InfectionRates DESC
+
+---- Look at highest death count among countries  ----
+SELECT location, MAX(total_deaths) as HighestDeathCount, population
+FROM [PortfolioDB].[dbo].[owid-covid-data]
+-- WHERE location like '%Taiwan%' --
+GROUP BY location, population
+ORDER BY HighestDeathCount DESC
+
+---- Look at highest death count vs population among continents  ----
+SELECT location, MAX(total_deaths) as highestDeathCount, MAX(population) as population, MAX(total_deaths/population)*100 as DeathRates, continent
+FROM [PortfolioDB].[dbo].[owid-covid-data]
+WHERE continent is NULL AND (location != 'Upper middle income')
+GROUP BY location, continent, population
+ORDER BY DeathRates DESC
+
+---- Look at highest death count vs population among countries  ----
+SELECT location, MAX(total_deaths) as HighestDeathCount, population, MAX((total_deaths / population)*100) as DeathRates
+FROM [PortfolioDB].[dbo].[owid-covid-data]
+WHERE continent IS NOT Null
+-- WHERE location like '%Taiwan%' --
+GROUP BY location, population
+ORDER BY DeathRates DESC
