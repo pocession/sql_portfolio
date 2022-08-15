@@ -93,7 +93,7 @@ from PropvsVac
 ORDER BY new_vaccinations DESC
 
 ---- Temp table ----
-DROP TABLE if exists #Vaccination
+DROP TABLE if exists #Vaccination ---- Note # marks the temp table, will not save to the database
 CREATE TABLE #Vaccination 
 (
     Continent NVARCHAR(255),
@@ -109,6 +109,24 @@ SELECT continent, location, date, MAX(population) as population, new_vaccination
     GROUP BY continent, location, date, new_vaccinations
 GO
 SELECT * FROM #Vaccination
+
+---- Table ----
+DROP TABLE if exists Vaccination
+CREATE TABLE Vaccination 
+(
+    Continent NVARCHAR(255),
+    Location NVARCHAR(255),
+    Date datetime,
+    Population numeric,
+    New_vaccinations numeric
+)
+INSERT INTO Vaccination
+SELECT continent, location, date, MAX(population) as population, new_vaccinations
+    FROM [PortfolioDB].[dbo].[owid-covid-data]
+    WHERE continent IS NOT Null
+    GROUP BY continent, location, date, new_vaccinations
+GO
+SELECT * FROM Vaccination
 
 ---- Create view for storing data for visulation ----
 CREATE VIEW View_Vaccination as
