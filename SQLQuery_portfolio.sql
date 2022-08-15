@@ -48,12 +48,25 @@ FROM [PortfolioDB].[dbo].[owid-covid-data]
 GROUP BY location, population
 ORDER BY HighestDeathCount DESC
 
----- Look at highest death count vs population among continents  ----
-SELECT location, MAX(total_deaths) as highestDeathCount, MAX(population) as population, MAX(total_deaths/population)*100 as DeathRates, continent
+---- Look at highest death count vs population among continents (DeathRates) ----
+SELECT location, MAX(total_deaths) as highestDeathCount, MAX(total_cases) as highestCaseCount, MAX(population) as population, MAX(total_deaths/total_cases)*100 as DeathRates, continent
 FROM [PortfolioDB].[dbo].[owid-covid-data]
-WHERE continent is NULL AND (location NOT LIKE '%income%' AND location != 'International' AND location != 'World')
+WHERE continent is NULL AND 
+    (location NOT LIKE '%income%' AND location != 'International' AND location != 'World' AND location NOT LIKE '%Union%')
 GROUP BY location, continent, population
 ORDER BY DeathRates DESC
+
+---- Look at Global death count vs cases (DeathRates)  ----
+SELECT SUM(new_deaths) as total_deaths, SUM(new_cases) as total_cases, SUM(new_deaths) / SUM(new_cases) as DeathRates
+FROM [PortfolioDB].[dbo].[owid-covid-data]
+WHERE continent is not NULL
+
+-- Drop a table called 'TableName' in schema 'dbo'
+-- Drop the table if it already exists
+IF OBJECT_ID('[dbo].[TableName]', 'U') IS NOT NULL
+DROP TABLE [dbo].[TableName]
+GO
+
 
 ---- Look at highest death count vs population among countries  ----
 SELECT location, MAX(total_deaths) as HighestDeathCount, population, MAX((total_deaths / population)*100) as DeathRates
@@ -62,3 +75,6 @@ WHERE continent IS NOT Null
 -- WHERE location like '%Taiwan%' --
 GROUP BY location, population
 ORDER BY DeathRates DESC
+
+
+
