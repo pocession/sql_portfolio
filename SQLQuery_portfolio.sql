@@ -51,7 +51,7 @@ ORDER BY HighestDeathCount DESC
 ---- Look at highest death count vs population among continents  ----
 SELECT location, MAX(total_deaths) as highestDeathCount, MAX(population) as population, MAX(total_deaths/population)*100 as DeathRates, continent
 FROM [PortfolioDB].[dbo].[owid-covid-data]
-WHERE continent is NULL AND (location != 'Upper middle income')
+WHERE continent is NULL AND (location NOT LIKE '%income%' AND location != 'International' AND location != 'World')
 GROUP BY location, continent, population
 ORDER BY DeathRates DESC
 
