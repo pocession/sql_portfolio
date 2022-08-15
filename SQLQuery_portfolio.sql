@@ -16,7 +16,7 @@ GO
 -- Check top 1000 rows of CovidVaccinations --
 SELECT TOP (1000) * FROM [PortfolioDB].[dbo].[owid-covid-data]
 
--- The analysis begins from here --
+-- Overview of data --
 ---- Take a look at data we are going to use ----
 SELECT location, date, total_cases, new_cases, total_deaths, population 
 FROM [PortfolioDB].[dbo].[owid-covid-data]
@@ -41,14 +41,13 @@ FROM [PortfolioDB].[dbo].[owid-covid-data]
 GROUP BY location, population
 ORDER BY InfectionRates DESC
 
----- Look at highest death count among countries  ----
-SELECT location, MAX(total_deaths) as HighestDeathCount, population
+---- Look at Global death count vs cases (DeathRates)  ----
+SELECT SUM(new_deaths) as total_deaths, SUM(new_cases) as total_cases, SUM(new_deaths) / SUM(new_cases) as DeathRates
 FROM [PortfolioDB].[dbo].[owid-covid-data]
--- WHERE location like '%Taiwan%' --
-GROUP BY location, population
-ORDER BY HighestDeathCount DESC
+WHERE continent is not NULL
 
----- Look at highest death count vs population among continents (DeathRates) ----
+-- Check data by continent --
+---- Look at highest death count vs cases (DeathRates) among continents----
 SELECT location, MAX(total_deaths) as highestDeathCount, MAX(total_cases) as highestCaseCount, MAX(population) as population, MAX(total_deaths/total_cases)*100 as DeathRates, continent
 FROM [PortfolioDB].[dbo].[owid-covid-data]
 WHERE continent is NULL AND 
@@ -56,25 +55,26 @@ WHERE continent is NULL AND
 GROUP BY location, continent, population
 ORDER BY DeathRates DESC
 
----- Look at Global death count vs cases (DeathRates)  ----
-SELECT SUM(new_deaths) as total_deaths, SUM(new_cases) as total_cases, SUM(new_deaths) / SUM(new_cases) as DeathRates
+-- Check data by country --
+---- Look at highest death count among countries  ----
+SELECT location, MAX(total_deaths) as HighestDeathCount, population
 FROM [PortfolioDB].[dbo].[owid-covid-data]
-WHERE continent is not NULL
+-- WHERE location like '%Taiwan%' --
+GROUP BY location, population
+ORDER BY HighestDeathCount DESC
 
--- Drop a table called 'TableName' in schema 'dbo'
--- Drop the table if it already exists
-IF OBJECT_ID('[dbo].[TableName]', 'U') IS NOT NULL
-DROP TABLE [dbo].[TableName]
-GO
-
-
----- Look at highest death count vs population among countries  ----
-SELECT location, MAX(total_deaths) as HighestDeathCount, population, MAX((total_deaths / population)*100) as DeathRates
+---- Look at highest death count vs cases (DeathRates) among countries  ----
+SELECT location, MAX(total_deaths) as HighestDeathCount, MAX(total_cases) as highestCaseCount, MAX(population) as population, MAX(total_deaths / total_cases)*100 as DeathRates
 FROM [PortfolioDB].[dbo].[owid-covid-data]
 WHERE continent IS NOT Null
 -- WHERE location like '%Taiwan%' --
 GROUP BY location, population
 ORDER BY DeathRates DESC
+
+SELECT location, date, total_deaths, total_cases, new_cases, new_deaths, population, continent
+FROM [PortfolioDB].[dbo].[owid-covid-data]
+WHERE continent IS NOT Null AND location = 'North Korea'
+ORDER by new_deaths DESC
 
 
 
