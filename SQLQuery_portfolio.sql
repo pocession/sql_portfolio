@@ -7,12 +7,11 @@ IF NOT EXISTS (
 )
 CREATE DATABASE [PortfolioDB]
 GO
-ALTER DATABASE [PortfolioDB] SET QUERY_STORE=ON
-GO
 
 -- Import CovidVaccinations & CovidDeaths csv files to data base --
 ---- Use Import wizard ----
 ---- Change the table name ----
+
 -- Check top 1000 rows of CovidVaccinations --
 SELECT TOP (1000) * FROM [PortfolioDB].[dbo].[owid-covid-data]
 
@@ -47,7 +46,7 @@ FROM [PortfolioDB].[dbo].[owid-covid-data]
 WHERE continent is not NULL
 
 -- Check data by continent --
----- Look at highest death count vs cases (DeathRates) among continents----
+---- Look at highest death count vs cases (DeathRates) among continents ----
 SELECT location, MAX(total_deaths) as highestDeathCount, MAX(total_cases) as highestCaseCount, MAX(population) as population, MAX(total_deaths/total_cases)*100 as DeathRates, continent
 FROM [PortfolioDB].[dbo].[owid-covid-data]
 WHERE continent is NULL AND 
@@ -64,17 +63,56 @@ GROUP BY location, population
 ORDER BY HighestDeathCount DESC
 
 ---- Look at highest death count vs cases (DeathRates) among countries  ----
-SELECT location, MAX(total_deaths) as HighestDeathCount, MAX(total_cases) as highestCaseCount, MAX(population) as population, MAX(total_deaths / total_cases)*100 as DeathRates
+---- Note the weird record of North Korea ----
+SELECT location, SUM(new_deaths) as HighestDeathCount, SUM(new_cases) as HighestCaseCount, MAX(population) as population, (SUM(total_deaths) / SUM(total_cases))*100 as DeathRates
 FROM [PortfolioDB].[dbo].[owid-covid-data]
 WHERE continent IS NOT Null
 -- WHERE location like '%Taiwan%' --
 GROUP BY location, population
 ORDER BY DeathRates DESC
 
+---- Double confirm the record of North Korea ----
 SELECT location, date, total_deaths, total_cases, new_cases, new_deaths, population, continent
 FROM [PortfolioDB].[dbo].[owid-covid-data]
 WHERE continent IS NOT Null AND location = 'North Korea'
 ORDER by new_deaths DESC
 
+---- Look at highest vaccinated count vs population (VaccinationRates) among countries  ----
+---- Use CTE ----
+WITH PropvsVac (continent, location, date, population, new_vaccinations) as
+(
+    SELECT continent, location, date, MAX(population) as population, new_vaccinations
+    FROM [PortfolioDB].[dbo].[owid-covid-data]
+    WHERE continent IS NOT Null
+    -- WHERE location like '%Taiwan%'
+    GROUP BY continent, location, date, new_vaccinations
+    -- ORDER by new_deaths DESC
+)
+select * -- Don't forget the final select
+from PropvsVac
+ORDER BY new_vaccinations DESC
 
+---- Temp table ----
+DROP TABLE if exists #Vaccination
+CREATE TABLE #Vaccination 
+(
+    Continent NVARCHAR(255),
+    Location NVARCHAR(255),
+    Date datetime,
+    Population numeric,
+    New_vaccinations numeric
+)
+INSERT INTO #Vaccination
+SELECT continent, location, date, MAX(population) as population, new_vaccinations
+    FROM [PortfolioDB].[dbo].[owid-covid-data]
+    WHERE continent IS NOT Null
+    GROUP BY continent, location, date, new_vaccinations
+GO
+SELECT * FROM #Vaccination
 
+---- Create view for storing data for visulation ----
+CREATE VIEW View_Vaccination as
+SELECT continent, location, date, MAX(population) as population, new_vaccinations
+    FROM [PortfolioDB].[dbo].[owid-covid-data]
+    WHERE continent IS NOT Null
+    GROUP BY continent, location, date, new_vaccinations
