@@ -49,7 +49,9 @@ WHERE continent is NULL
 
 -- Check data by continent --
 ---- Look at highest death count vs cases (DeathRates) among continents ----
-SELECT location, SUM(new_deaths) as Total_Deaths, SUM(new_cases) as Total_Cases, (SUM(new_deaths) / SUM(new_cases))*100 as DeathRates, MAX(population) as population
+SELECT location, SUM(new_deaths) as Total_Deaths, SUM(new_cases) as Total_Cases, 
+    (SUM(new_deaths) / SUM(new_cases))*100 as DeathRates, (SUM(new_cases)/MAX(population))*100 as InfectionRates,
+    MAX(population) as population
 FROM [PortfolioDB].[dbo].[owid-covid-data]
 WHERE continent is NULL AND 
     (location NOT LIKE '%income%' AND location != 'International' AND location != 'World' AND location NOT LIKE '%Union%')
@@ -160,23 +162,38 @@ SELECT * FROM View_Vaccination
 ORDER BY PeopleRollingVaccinated DESC
 
 -- Tables used for Tableau --
----- Table 1, Global Death Rates ----
+---- Table 1, Global data ----
 SELECT SUM(new_deaths) as total_deaths, SUM(new_cases) as total_cases, 
     (SUM(new_deaths) / SUM(new_cases))*100 as DeathRates, 
     (SUM(new_cases) / SUM(population))*100 as InfectionRates, MAX(population) as population
 FROM [PortfolioDB].[dbo].[owid-covid-data]
 WHERE continent is NULL
 
----- Table 2, Death Rates by continent ----
-SELECT location, SUM(new_deaths) as Total_Deaths, SUM(new_cases) as Total_Cases, 
-    (SUM(new_deaths) / SUM(new_cases))*100 as DeathRates, MAX(population) as population
+---- Table 2, Data by continent ----
+SELECT location, SUM(new_deaths) as Total_deaths, SUM(new_cases) as Total_cases, 
+    (SUM(new_deaths) / SUM(new_cases))*100 as DeathRates, (SUM(new_cases)/MAX(population))*100 as InfectionRates,
+    MAX(population) as population
 FROM [PortfolioDB].[dbo].[owid-covid-data]
 WHERE continent is NULL AND 
     (location NOT LIKE '%income%' AND location != 'International' AND location != 'World' AND location NOT LIKE '%Union%')
 GROUP BY location, continent, population
 ORDER BY DeathRates DESC
 
----- Table 3, Death Rates by contry ----
+---- Table 3, Data by contry ----
+---- North Korea data has been dropped because it contains obvious error ----
+SELECT location, SUM(new_deaths) as Total_deaths, SUM(new_cases) as Total_cases,
+    (SUM(new_deaths) / SUM(new_cases))*100 as DeathRates, (SUM(new_cases)/MAX(population))*100 as InfectionRates,
+    population
+FROM [PortfolioDB].[dbo].[owid-covid-data]
+WHERE continent is not NULL AND location != 'North Korea'
+GROUP BY location, continent, population
+ORDER BY DeathRates DESC
+
+---- Table 4, Time series data by country ----
+SELECT location, date, total_cases, (total_cases / population)*100 as InfectionRates, population
+FROM [PortfolioDB].[dbo].[owid-covid-data]
+WHERE continent is not NULL
+ORDER BY location, date ASC
 
 ---- Test codes ----
 SELECT location, continent, SUM(new_deaths) as Total_deaths, SUM(new_cases) as Total_cases, population
