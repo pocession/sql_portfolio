@@ -190,7 +190,8 @@ GROUP BY location, continent, population
 ORDER BY DeathRates DESC
 
 ---- Table 4, Time series data by country ----
-SELECT location, date, total_cases, (total_cases / population)*100 as InfectionRates, population
+SELECT location, date, ISNULL(total_cases, 0) as total_cases, (total_cases / population)*100 as InfectionRates, 
+    population
 FROM [PortfolioDB].[dbo].[owid-covid-data]
 WHERE continent is not NULL
 ORDER BY location, date ASC
