@@ -41,13 +41,15 @@ GROUP BY location, population
 ORDER BY InfectionRates DESC
 
 ---- Look at Global death count vs cases (DeathRates)  ----
-SELECT SUM(new_deaths) as total_deaths, SUM(new_cases) as total_cases, SUM(new_deaths) / SUM(new_cases) as DeathRates
+SELECT SUM(new_deaths) as total_deaths, SUM(new_cases) as total_cases, 
+    (SUM(new_deaths) / SUM(new_cases))*100 as DeathRates, 
+    (SUM(new_cases) / SUM(population))*100 as InfectionRates, MAX(population) as population
 FROM [PortfolioDB].[dbo].[owid-covid-data]
-WHERE continent is not NULL
+WHERE continent is NULL
 
 -- Check data by continent --
 ---- Look at highest death count vs cases (DeathRates) among continents ----
-SELECT location, MAX(total_deaths) as highestDeathCount, MAX(total_cases) as highestCaseCount, MAX(population) as population, MAX(total_deaths/total_cases)*100 as DeathRates, continent
+SELECT location, SUM(new_deaths) as Total_Deaths, SUM(new_cases) as Total_Cases, (SUM(new_deaths) / SUM(new_cases))*100 as DeathRates, MAX(population) as population
 FROM [PortfolioDB].[dbo].[owid-covid-data]
 WHERE continent is NULL AND 
     (location NOT LIKE '%income%' AND location != 'International' AND location != 'World' AND location NOT LIKE '%Union%')
@@ -156,3 +158,28 @@ SELECT continent, location, date, MAX(population) as population, new_vaccination
 
 SELECT * FROM View_Vaccination
 ORDER BY PeopleRollingVaccinated DESC
+
+-- Tables used for Tableau --
+---- Table 1, Global Death Rates ----
+SELECT SUM(new_deaths) as total_deaths, SUM(new_cases) as total_cases, 
+    (SUM(new_deaths) / SUM(new_cases))*100 as DeathRates, 
+    (SUM(new_cases) / SUM(population))*100 as InfectionRates, MAX(population) as population
+FROM [PortfolioDB].[dbo].[owid-covid-data]
+WHERE continent is NULL
+
+---- Table 2, Death Rates by continent ----
+SELECT location, SUM(new_deaths) as Total_Deaths, SUM(new_cases) as Total_Cases, 
+    (SUM(new_deaths) / SUM(new_cases))*100 as DeathRates, MAX(population) as population
+FROM [PortfolioDB].[dbo].[owid-covid-data]
+WHERE continent is NULL AND 
+    (location NOT LIKE '%income%' AND location != 'International' AND location != 'World' AND location NOT LIKE '%Union%')
+GROUP BY location, continent, population
+ORDER BY DeathRates DESC
+
+---- Table 3, Death Rates by contry ----
+
+---- Test codes ----
+SELECT location, continent, SUM(new_deaths) as Total_deaths, SUM(new_cases) as Total_cases, population
+FROM [PortfolioDB].[dbo].[owid-covid-data]
+WHERE continent is not NULL
+GROUP BY location, continent, population
