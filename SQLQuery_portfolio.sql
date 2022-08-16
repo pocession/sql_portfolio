@@ -79,58 +79,80 @@ ORDER by new_deaths DESC
 
 ---- Look at highest vaccinated count vs population (VaccinationRates) among countries  ----
 ---- Use CTE ----
-WITH PropvsVac (continent, location, date, population, new_vaccinations) as
+WITH PropvsVac (continent, location, date, population, new_vaccinations, PeopleRollingVaccinated) as
 (
-    SELECT continent, location, date, MAX(population) as population, new_vaccinations
+    SELECT continent, location, date, MAX(population) as population, new_vaccinations,
+        SUM(new_vaccinations) OVER(PARTITION BY location ORDER BY location, date) AS PeopleRollingVaccinated
     FROM [PortfolioDB].[dbo].[owid-covid-data]
     WHERE continent IS NOT Null
-    -- WHERE location like '%Taiwan%'
     GROUP BY continent, location, date, new_vaccinations
-    -- ORDER by new_deaths DESC
+    -- ORDER by PeoplerRollingVaccinated DESC
 )
 select * -- Don't forget the final select
 from PropvsVac
-ORDER BY new_vaccinations DESC
+ORDER BY PeopleRollingVaccinated DESC
+
 
 ---- Temp table ----
 DROP TABLE if exists #Vaccination ---- Note # marks the temp table, will not save to the database
+
 CREATE TABLE #Vaccination 
 (
     Continent NVARCHAR(255),
     Location NVARCHAR(255),
     Date datetime,
     Population numeric,
-    New_vaccinations numeric
+    New_vaccinations numeric,
+    PeopleRollingVaccinated numeric
 )
 INSERT INTO #Vaccination
-SELECT continent, location, date, MAX(population) as population, new_vaccinations
+SELECT continent, location, date, MAX(population) as population, new_vaccinations, 
+        SUM(new_vaccinations) OVER(PARTITION BY location ORDER BY location, date) AS PeopleRollingVaccinated
     FROM [PortfolioDB].[dbo].[owid-covid-data]
     WHERE continent IS NOT Null
     GROUP BY continent, location, date, new_vaccinations
+    -- ORDER by PeoplerRollingVaccinated DESC
 GO
+
 SELECT * FROM #Vaccination
+ORDER BY PeopleRollingVaccinated DESC
 
 ---- Table ----
 DROP TABLE if exists Vaccination
+
 CREATE TABLE Vaccination 
 (
     Continent NVARCHAR(255),
     Location NVARCHAR(255),
     Date datetime,
     Population numeric,
-    New_vaccinations numeric
+    New_vaccinations numeric,
+    PeopleRollingVaccinated numeric
 )
 INSERT INTO Vaccination
-SELECT continent, location, date, MAX(population) as population, new_vaccinations
+SELECT continent, location, date, MAX(population) as population, new_vaccinations, 
+        SUM(new_vaccinations) OVER(PARTITION BY location ORDER BY location, date) AS PeopleRollingVaccinated
     FROM [PortfolioDB].[dbo].[owid-covid-data]
     WHERE continent IS NOT Null
     GROUP BY continent, location, date, new_vaccinations
+    -- ORDER by PeoplerRollingVaccinated DESC
 GO
-SELECT * FROM Vaccination
 
----- Create view for storing data for visulation ----
+SELECT * FROM Vaccination
+ORDER BY PeopleRollingVaccinated DESC
+
+---- Create view for storing data for visualization ----
+---- A view is just a SELECT statement which has been saved in the database ----
+---- The advantage of view is to save a complex SELECT statement from several tables ----
+DROP VIEW IF EXISTS View_Vaccination 
+
 CREATE VIEW View_Vaccination as
-SELECT continent, location, date, MAX(population) as population, new_vaccinations
+SELECT continent, location, date, MAX(population) as population, new_vaccinations, 
+        SUM(new_vaccinations) OVER(PARTITION BY location ORDER BY location, date) AS PeopleRollingVaccinated
     FROM [PortfolioDB].[dbo].[owid-covid-data]
     WHERE continent IS NOT Null
     GROUP BY continent, location, date, new_vaccinations
+    -- ORDER by PeoplerRollingVaccinated DESC
+
+SELECT * FROM View_Vaccination
+ORDER BY PeopleRollingVaccinated DESC
