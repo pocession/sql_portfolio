@@ -198,7 +198,8 @@ GROUP BY location, date, total_cases, population, total_deaths
 ORDER BY location, date DESC
 
 ---- Table 5, Time series data (Vaccination) by country ----
-SELECT location, date, people_fully_vaccinated, population
+SELECT location, date, people_fully_vaccinated, population, 
+    (people_fully_vaccinated / population)*100 as FullVaccinationRates
 FROM [PortfolioDB].[dbo].[owid-covid-data]
 WHERE continent is not NULL
 GROUP BY location, date, population, people_fully_vaccinated
