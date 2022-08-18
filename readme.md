@@ -5,4 +5,3 @@ The world is becoming more and more open for traveling. With the high percentage
 ![covid](Figs/sql_tableau_covid.png)
 
 - [Tableau](https://public.tableau.com/app/profile/tsunghan.hsieh/viz/covid19_16606524256070/1)
-- [Github](https://github.com/pocession/sql_portfolio)
