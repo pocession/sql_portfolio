@@ -189,12 +189,20 @@ WHERE continent is not NULL AND location != 'North Korea'
 GROUP BY location, continent, population
 ORDER BY DeathRates DESC
 
----- Table 4, Time series data by country ----
+---- Table 4, Time series data (Dath rates, Infection Rates) by country ----
 SELECT location, date, ISNULL(total_cases, 0) as total_cases, (total_cases / population)*100 as InfectionRates, 
-    population
+    (total_deaths / total_cases)*100 as DeathRates,population
 FROM [PortfolioDB].[dbo].[owid-covid-data]
 WHERE continent is not NULL
-ORDER BY location, date ASC
+GROUP BY location, date, total_cases, population, total_deaths
+ORDER BY location, date DESC
+
+---- Table 5, Time series data (Vaccination) by country ----
+SELECT location, date, people_fully_vaccinated, population
+FROM [PortfolioDB].[dbo].[owid-covid-data]
+WHERE continent is not NULL
+GROUP BY location, date, population, people_fully_vaccinated
+ORDER BY location, date DESC
 
 ---- Test codes ----
 SELECT location, continent, SUM(new_deaths) as Total_deaths, SUM(new_cases) as Total_cases, population
