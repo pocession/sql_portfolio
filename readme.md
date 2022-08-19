@@ -28,7 +28,7 @@ The processed data is provided in 'csv' formats and stored in the follwoing fold
 
 ## Useful links
 - [Data source](https://ourworldindata.org/covid-deaths)
-- [Azure SQL edge] (https://azure.microsoft.com/ja-jp/products/azure-sql/edge/#product-overview)
+- [Azure SQL edge](https://azure.microsoft.com/ja-jp/products/azure-sql/edge/#product-overview)
 - [Azure SQL EDGE](https://azure.microsoft.com/en-us/products/azure-sql/edge/)
 - [docker](https://www.docker.com/)
 - [Tableau](https://public.tableau.com/app/profile/tsunghan.hsieh/viz/covid19_16606524256070/1)
